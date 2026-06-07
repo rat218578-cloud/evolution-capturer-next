@@ -8,14 +8,15 @@ export default function LoginForm({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
       await onLogin(email, password);
     } catch (err) {
+      console.error('Login form error:', err);
       setError('Falha no login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
@@ -23,26 +24,23 @@ export default function LoginForm({ onLogin }) {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="bg-gray-800 rounded-lg p-8 max-w-md w-full">
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full shadow-xl">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🎰</div>
+          <div className="text-5xl mb-3">🎰</div>
           <h2 className="text-2xl font-bold text-green-500">Evolution Capturer</h2>
           <p className="text-gray-400 text-sm mt-2">
-            Ambiente demonstrativo para organizar estatísticas e sinais de jogos.
+            Configure um endpoint de autenticação autorizado para habilitar o acesso.
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="email">
-              📧 E-mail
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">📧 E-mail</label>
             <input
-              id="email"
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 text-white"
               placeholder="Digite seu e-mail"
               required
@@ -50,14 +48,11 @@ export default function LoginForm({ onLogin }) {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2" htmlFor="password">
-              🔒 Senha
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">🔒 Senha</label>
             <input
-              id="password"
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 text-white"
               placeholder="Digite sua senha"
               required
@@ -78,10 +73,6 @@ export default function LoginForm({ onLogin }) {
             {loading ? '🔄 Entrando...' : '🔐 ENTRAR'}
           </button>
         </form>
-
-        <div className="mt-4 text-center text-xs text-gray-500">
-          O login usa uma sessão local de demonstração e não envia credenciais para terceiros.
-        </div>
       </div>
     </div>
   );

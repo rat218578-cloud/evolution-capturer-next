@@ -8,8 +8,8 @@ export default function HistoryTable({ history }) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4">
-      <h3 className="text-md font-bold text-yellow-500 mb-3">📜 HISTÓRICO</h3>
+    <div className="bg-gray-800 rounded-xl p-5">
+      <h3 className="text-md font-bold text-yellow-500 mb-4">📜 HISTÓRICO</h3>
 
       <div className="space-y-2 max-h-96 overflow-y-auto">
         {history.length === 0 ? (
@@ -21,7 +21,7 @@ export default function HistoryTable({ history }) {
               <div className={`font-bold ${getWinnerClass(item.winner)}`}>
                 {item.winner === 'Banker' ? '🏦 BANKER' : item.winner === 'Player' ? '👤 PLAYER' : '🤝 TIE'}
               </div>
-              <div className="text-xs font-mono">
+              <div className="text-xs font-mono text-gray-300">
                 {item.playerScore} vs {item.bankerScore}
               </div>
               <div className="text-xs text-gray-500">{item.time}</div>

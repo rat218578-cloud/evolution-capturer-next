@@ -13,9 +13,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "axios": "^1.6.0",
-    "ws": "^8.14.0",
-    "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3"
+    "ws": "^8.14.0"
   },
   "devDependencies": {
     "tailwindcss": "^3.3.0",
