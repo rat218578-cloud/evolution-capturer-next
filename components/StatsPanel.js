@@ -2,11 +2,11 @@
 
 export default function StatsPanel({ stats, balance }) {
   const total = stats.banker + stats.player + stats.tie;
-
+  
   return (
     <div className="bg-gray-800 rounded-xl p-5">
       <h3 className="text-md font-bold text-yellow-500 mb-4">📊 ESTATÍSTICAS</h3>
-
+      
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-yellow-900/30 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-yellow-500">{stats.banker}</div>
@@ -24,7 +24,7 @@ export default function StatsPanel({ stats, balance }) {
           <div className="text-xs text-gray-500">{total ? ((stats.tie/total)*100).toFixed(1) : 0}%</div>
         </div>
       </div>
-
+      
       <div className="border-t border-gray-700 pt-3">
         <div className="flex justify-between">
           <span className="text-gray-400">💰 Saldo:</span>
