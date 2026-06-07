@@ -32,6 +32,8 @@ evolution-capturer-next/
 ├── public/
 ├── package.json
 ├── next.config.js
+├── railway.json
+├── Procfile
 └── README.md
 ```
 
@@ -45,3 +47,16 @@ npm run dev
 ## Observação de segurança
 
 A rota de login foi implementada como sessão local de demonstração. Ela não encaminha credenciais para sites de terceiros e deve ser adaptada apenas para integrações próprias, autorizadas e em conformidade com os termos dos serviços utilizados.
+
+
+## Deploy no Railway
+
+Use as seguintes configurações no dashboard do Railway:
+
+| Campo | Valor |
+| --- | --- |
+| Start Command | `npm run start` |
+| Build Command | `npm install && npm run build` |
+| Root Directory | deixe vazio |
+
+O arquivo `railway.json` também declara o builder Nixpacks, o comando de build e o comando de start para o deploy.
