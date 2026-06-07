@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   experimental: {
-    serverComponentsExternalPackages: ['axios', 'ws']
+    serverComponentsExternalPackages: ['axios', 'ws', 'jsonwebtoken']
   },
   async headers() {
     return [
