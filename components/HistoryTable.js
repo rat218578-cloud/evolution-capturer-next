@@ -6,11 +6,11 @@ export default function HistoryTable({ history }) {
     if (winner === 'Player') return 'text-green-500';
     return 'text-gray-400';
   };
-
+  
   return (
     <div className="bg-gray-800 rounded-xl p-5">
       <h3 className="text-md font-bold text-yellow-500 mb-4">📜 HISTÓRICO</h3>
-
+      
       <div className="space-y-2 max-h-96 overflow-y-auto">
         {history.length === 0 ? (
           <div className="text-center text-gray-500 py-8">Aguardando rodadas...</div>
