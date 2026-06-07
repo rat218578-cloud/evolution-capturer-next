@@ -5,9 +5,11 @@ import { useState, useEffect } from 'react';
 export default function LoginForm({ onLogin }) {
   const [showIframe, setShowIframe] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Função para ler o cookie EVOSESSIONID diretamente
+  // Função para ler o cookie EVOSESSIONID diretamente (só no cliente)
   const getTokenFromCookie = () => {
+    if (typeof document === 'undefined') return null;
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
       cookie = cookie.trim();
@@ -20,6 +22,7 @@ export default function LoginForm({ onLogin }) {
 
   // Função para verificar se já tem token
   const checkExistingToken = () => {
+    if (typeof document === 'undefined') return false;
     const token = getTokenFromCookie();
     if (token && token.length > 10) {
       console.log('✅ Token encontrado no cookie!');
@@ -29,8 +32,15 @@ export default function LoginForm({ onLogin }) {
     return false;
   };
 
-  // Monitora o cookie em busca de mudanças
+  // Marcar que está no cliente
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Monitora o cookie em busca de mudanças (só no cliente)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    
     // Verifica ao montar
     checkExistingToken();
     
@@ -49,10 +59,10 @@ export default function LoginForm({ onLogin }) {
 
   // Quando o iframe carregar, tenta capturar o token
   const handleIframeLoad = () => {
+    if (typeof document === 'undefined') return;
     console.log('🔍 Iframe carregado, monitorando cookie...');
     setChecking(true);
     
-    // Tenta capturar a cada segundo
     let attempts = 0;
     const captureInterval = setInterval(() => {
       attempts++;
@@ -64,17 +74,25 @@ export default function LoginForm({ onLogin }) {
         clearInterval(captureInterval);
         setShowIframe(false);
       } else if (attempts > 30) {
-        // Desiste após 30 segundos
         clearInterval(captureInterval);
         setChecking(false);
       }
     }, 1000);
   };
 
+  // Não renderiza nada até estar no cliente
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="text-center">Carregando...</div>
+      </div>
+    );
+  }
+
   // Se já tem token, mostra o jogo diretamente
   const existingToken = getTokenFromCookie();
   if (existingToken && existingToken.length > 10) {
-    return null; // Já está logado, não mostra o formulário
+    return null;
   }
 
   return (
