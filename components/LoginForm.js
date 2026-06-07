@@ -84,7 +84,7 @@ export default function LoginForm({ onLogin }) {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="text-center">Carregando...</div>
+        <div className="text-center text-gray-400">Carregando...</div>
       </div>
     );
   }
