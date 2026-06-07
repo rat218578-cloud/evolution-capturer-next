@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import GameSelector from '@/components/GameSelector';
 import StatsPanel from '@/components/StatsPanel';
 import HistoryTable from '@/components/HistoryTable';
@@ -130,18 +130,42 @@ export default function Home() {
     setGameWs(ws);
   }, [gameWs]);
 
-  const handleLogin = (token, instance) => {
-    setToken(token);
+  // Login usando token JWT (igual ao diogocartas)
+  const handleLogin = async (jwtToken) => {
+    setToken(jwtToken);
     setIsLoggedIn(true);
     setBalance(1000);
+    
+    // Decodifica o JWT para obter informações
+    const decoded = JSON.parse(atob(jwtToken.split('.')[1]));
+    console.log('✅ Usuário logado:', decoded);
     
     setTimeout(() => {
       setupVideoPlayer();
       setTimeout(() => {
-        connectVideoStream(token);
-        connectGameWebSocket(token, instance, '6.20260604.73027.62464-b461235ce5-r2', GAMES[selectedGame].evolutionId);
+        // Usa o JWT para obter EVOSESSIONID
+        fetchEvolutionToken(jwtToken);
       }, 500);
     }, 100);
+  };
+
+  // Obtém EVOSESSIONID usando o JWT
+  const fetchEvolutionToken = async (jwtToken) => {
+    try {
+      const response = await fetch('/api/auth/evolution-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jwtToken })
+      });
+      
+      const data = await response.json();
+      if (data.EVOSESSIONID) {
+        connectVideoStream(data.EVOSESSIONID);
+        connectGameWebSocket(data.EVOSESSIONID, data.instance, data.client_version, GAMES[selectedGame].evolutionId);
+      }
+    } catch(e) {
+      console.error('Erro ao obter EVOSESSIONID:', e);
+    }
   };
 
   const switchGame = (gameId) => {
