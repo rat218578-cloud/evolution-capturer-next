@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 
 export default function LoginForm({ onLogin }) {
-  const [showIframe, setShowIframe] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [checking, setChecking] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Função para ler o cookie EVOSESSIONID diretamente (só no cliente)
+  // Função para ler o cookie EVOSESSIONID
   const getTokenFromCookie = () => {
     if (typeof document === 'undefined') return null;
     const cookies = document.cookie.split(';');
@@ -20,116 +20,104 @@ export default function LoginForm({ onLogin }) {
     return null;
   };
 
-  // Função para verificar se já tem token
+  // Verifica token existente
   const checkExistingToken = () => {
     if (typeof document === 'undefined') return false;
     const token = getTokenFromCookie();
     if (token && token.length > 10) {
-      console.log('✅ Token encontrado no cookie!');
+      console.log('✅ Token encontrado!');
       onLogin(token, '1rwl0x');
       return true;
     }
     return false;
   };
 
-  // Marcar que está no cliente
   useEffect(() => {
     setIsClient(true);
+    checkExistingToken();
   }, []);
 
-  // Monitora o cookie em busca de mudanças (só no cliente)
+  // Monitora cookie
   useEffect(() => {
     if (typeof document === 'undefined') return;
     
-    // Verifica ao montar
-    checkExistingToken();
-    
-    // Monitora mudanças no cookie a cada 2 segundos
     const interval = setInterval(() => {
       const token = getTokenFromCookie();
       if (token && token.length > 10) {
-        console.log('✅ Token capturado do cookie automaticamente!');
+        console.log('✅ Token capturado!');
         onLogin(token, '1rwl0x');
         clearInterval(interval);
+        setIsModalOpen(false);
       }
     }, 2000);
     
     return () => clearInterval(interval);
   }, []);
 
-  // Quando o iframe carregar, tenta capturar o token
-  const handleIframeLoad = () => {
-    if (typeof document === 'undefined') return;
-    console.log('🔍 Iframe carregado, monitorando cookie...');
-    setChecking(true);
-    
-    let attempts = 0;
-    const captureInterval = setInterval(() => {
-      attempts++;
-      const token = getTokenFromCookie();
-      
-      if (token && token.length > 10) {
-        console.log('✅ Token capturado do iframe!');
-        onLogin(token, '1rwl0x');
-        clearInterval(captureInterval);
-        setShowIframe(false);
-      } else if (attempts > 30) {
-        clearInterval(captureInterval);
-        setChecking(false);
-      }
-    }, 1000);
-  };
-
-  // Não renderiza nada até estar no cliente
   if (!isClient) {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="text-center text-gray-400">Carregando...</div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[70vh]">Carregando...</div>;
   }
 
-  // Se já tem token, mostra o jogo diretamente
   const existingToken = getTokenFromCookie();
   if (existingToken && existingToken.length > 10) {
     return null;
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh]">
-      <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full shadow-xl">
-        <div className="text-center mb-6">
+    <>
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full shadow-xl text-center">
           <div className="text-5xl mb-3">🎰</div>
-          <h2 className="text-2xl font-bold text-green-500">Evolution Capturer</h2>
-          <p className="text-gray-400 text-sm mt-2">
+          <h2 className="text-2xl font-bold text-green-500 mb-2">Evolution Capturer</h2>
+          <p className="text-gray-400 text-sm mb-6">
             Faça login com sua conta Sorte na Bet
           </p>
-        </div>
-        
-        {!showIframe ? (
+          
           <button
-            onClick={() => setShowIframe(true)}
+            onClick={() => setIsModalOpen(true)}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold transition-colors"
           >
             🔐 FAZER LOGIN
           </button>
-        ) : (
-          <>
-            <div className="border border-gray-600 rounded-lg overflow-hidden mb-4" style={{ height: '450px' }}>
-              <iframe 
-                id="loginIframe"
+          
+          <p className="text-xs text-gray-500 mt-4">
+            Ou cole o token manualmente:
+            <br />
+            <code className="text-green-400">copy(document.cookie.match(/EVOSESSIONID=([^;]+)/)[1])</code>
+          </p>
+        </div>
+      </div>
+      
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-gray-900 rounded-xl w-full max-w-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h3 className="font-bold text-white">Login Sorte na Bet</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="h-[500px]">
+              <iframe
                 src="https://sortenabet.evo-games.com/frontend/evo/r2/?game=bacbo&language=pt&currency=BRL"
-                className="w-full h-full"
-                onLoad={handleIframeLoad}
+                className="w-full h-full border-0"
                 allow="same-origin *;"
               />
             </div>
-            <p className="text-xs text-gray-500 text-center">
-              {checking ? '🔍 Detectando login...' : 'Faça login no iframe acima. O token será capturado automaticamente.'}
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+            
+            {checking && (
+              <div className="p-3 text-center text-yellow-500 text-sm border-t border-gray-700">
+                🔍 Detectando login...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
