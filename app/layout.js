@@ -1,7 +1,4 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Evolution Capturer - Live Games',
@@ -16,7 +13,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://sortenabet.evo-games.com" />
         <link rel="preconnect" href="https://sapa-mdp-e06.egcvi.com" />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans">
         <nav className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">

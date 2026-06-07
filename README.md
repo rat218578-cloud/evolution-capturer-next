@@ -2,9 +2,10 @@
 
 ## Funcionalidades
 
-- ✅ **Player para vídeo ao vivo** via WebSocket autorizado
+- ✅ **Login via iframe da Sorte na Bet** (igual ao diogocartas.app)
+- ✅ **Captura automática do token JWT**
+- ✅ **Vídeo AO VIVO REAL** via WebSocket da Evolution
 - ✅ **WebSocket do jogo** para resultados em tempo real
-- ✅ **Login via provedor autorizado** configurado por variável de ambiente
 - ✅ **Múltiplos jogos**: Bac Bo, Football Studio, Baccarat, Roleta
 - ✅ **Estatísticas ao vivo** (Banker, Player, Tie)
 - ✅ **Histórico de rodadas**
@@ -14,29 +15,6 @@
 ```bash
 npm install
 npm run dev
-```
-
-## Variáveis de ambiente
-
-Configure um provedor de autenticação próprio/autorizado antes de usar o login:
-
-```bash
-AUTH_API_URL=https://seu-provedor-autorizado.example.com/login
-VIDEO_WS_URL=wss://seu-stream-autorizado.example.com/video
-GAME_WS_BASE_URL=wss://seu-game-ws-autorizado.example.com/public/bacbo/player/game
-```
-
-A resposta de `AUTH_API_URL` deve retornar JSON com:
-
-```json
-{
-  "EVOSESSIONID": "token-da-sessao",
-  "instance": "instancia",
-  "client_version": "versao-do-cliente",
-  "balance": 1000,
-  "video_ws_url": "wss://...",
-  "game_ws_base_url": "wss://.../game"
-}
 ```
 
 ## Deploy no Railway
@@ -59,8 +37,9 @@ No dashboard do Railway, use:
 - Tailwind CSS
 - WebSocket / MediaSource
 - Axios
+- JSON Web Token
 
-## Estrutura Completa do Projeto
+## Estrutura do Projeto
 
 ```text
 evolution-capturer-next/
