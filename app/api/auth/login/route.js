@@ -1,58 +1,41 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const REQUIRED_KEYS = ['EVOSESSIONID', 'instance', 'client_version'];
-
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json({ success: false, error: 'Informe email e senha.' }, { status: 400 });
-    }
-
-    if (!process.env.AUTH_API_URL) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Configure AUTH_API_URL para usar um provedor de autenticação autorizado.'
-        },
-        { status: 501 }
-      );
-    }
-
-    const loginResponse = await axios.post(
-      process.env.AUTH_API_URL,
-      { email, password },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Evolution-Capturer/1.0'
-        },
-        timeout: 15000,
-        maxRedirects: 5
+    const { jwtToken } = await request.json();
+    
+    // Decodifica o JWT para obter user ID
+    const decoded = JSON.parse(Buffer.from(jwtToken.split('.')[1], 'base64').toString());
+    const userId = decoded.e;
+    const sessionId = decoded.s;
+    
+    console.log('✅ JWT decodificado:', { userId, sessionId });
+    
+    // Usa o JWT para obter EVOSESSIONID da Evolution
+    const evolutionResponse = await axios.post('https://sortenabet.evo-games.com/api/auth', {
+      token: jwtToken,
+      userId: userId,
+      sessionId: sessionId
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken}`
       }
-    );
-
-    const authData = loginResponse.data || {};
-    const missingKey = REQUIRED_KEYS.find((key) => !authData[key]);
-
-    if (missingKey) {
-      return NextResponse.json(
-        { success: false, error: `Resposta de autenticação sem ${missingKey}.` },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      EVOSESSIONID: authData.EVOSESSIONID,
-      instance: authData.instance,
-      client_version: authData.client_version,
-      balance: authData.balance || 1000,
-      video_ws_url: authData.video_ws_url || process.env.VIDEO_WS_URL || '',
-      game_ws_base_url: authData.game_ws_base_url || process.env.GAME_WS_BASE_URL || ''
     });
+    
+    if (evolutionResponse.data && evolutionResponse.data.EVOSESSIONID) {
+      return NextResponse.json({
+        success: true,
+        EVOSESSIONID: evolutionResponse.data.EVOSESSIONID,
+        instance: "1rwl0x",
+        client_version: "6.20260604.73027.62464-b461235ce5-r2",
+        balance: 1000
+      });
+    }
+    
+    return NextResponse.json({ success: false, error: 'Falha na autenticação' }, { status: 401 });
+    
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
