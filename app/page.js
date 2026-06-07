@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import GameSelector from '@/components/GameSelector';
 import StatsPanel from '@/components/StatsPanel';
 import HistoryTable from '@/components/HistoryTable';
@@ -22,24 +22,23 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({ banker: 0, player: 0, tie: 0 });
   
-  const [videoElement, setVideoElement] = useState(null);
   const [sourceBuffer, setSourceBuffer] = useState(null);
   const [videoQueue, setVideoQueue] = useState([]);
   const [gameWs, setGameWs] = useState(null);
   const [videoWs, setVideoWs] = useState(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   // Configuração do player de vídeo
-  const setupVideoPlayer = () => {
-    const video = document.getElementById('liveVideo');
-    if (!video) return;
+  const setupVideoPlayer = useCallback(() => {
+    if (!videoRef.current) return;
     
     if (window.MediaSource) {
       const mediaSource = new MediaSource();
-      video.src = URL.createObjectURL(mediaSource);
+      videoRef.current.src = URL.createObjectURL(mediaSource);
       
       mediaSource.addEventListener('sourceopen', () => {
         try {
@@ -57,12 +56,14 @@ export default function Home() {
         }
       });
     }
-  };
+  }, [videoQueue]);
 
   // Conecta ao WebSocket de vídeo REAL
-  const connectVideoStream = (evoSessionId) => {
+  const connectVideoStream = useCallback((evoSessionId) => {
     const videoSessionId = `${evoSessionId}-${evoSessionId}-SortenabetFS0001-${Math.random().toString(36).substring(2, 10)}`;
     const wsUrl = `wss://sapa-mdp-e06.egcvi.com/app/30/topcbr1_bi_med/websocketstream2?vc=h264&ac=opus&videoSessionId=${videoSessionId}`;
+    
+    if (videoWs) videoWs.close();
     
     const ws = new WebSocket(wsUrl);
     ws.binaryType = 'arraybuffer';
@@ -83,11 +84,13 @@ export default function Home() {
     
     ws.onclose = () => setTimeout(() => connectVideoStream(evoSessionId), 5000);
     setVideoWs(ws);
-  };
+  }, [sourceBuffer, videoWs]);
 
   // Conecta ao WebSocket do jogo
-  const connectGameWebSocket = (token, instance, clientVersion, gameId) => {
+  const connectGameWebSocket = useCallback((token, instance, clientVersion, gameId) => {
     const wsUrl = `wss://sortenabet.evo-games.com/public/bacbo/player/game/${gameId}/socket?messageFormat=json&EVOSESSIONID=${token}&instance=${instance}&client_version=${clientVersion}`;
+    
+    if (gameWs) gameWs.close();
     
     const ws = new WebSocket(wsUrl);
     
@@ -125,7 +128,7 @@ export default function Home() {
     
     ws.onclose = () => setTimeout(() => connectGameWebSocket(token, instance, clientVersion, gameId), 5000);
     setGameWs(ws);
-  };
+  }, [gameWs]);
 
   const handleLogin = (token, instance) => {
     setToken(token);
@@ -150,7 +153,7 @@ export default function Home() {
   };
 
   if (!isClient) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-gray-400">Carregando...</div>;
   }
 
   if (!isLoggedIn) {
@@ -163,8 +166,8 @@ export default function Home() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
-          <div className="bg-black rounded-xl overflow-hidden shadow-2xl">
-            <video id="liveVideo" className="w-full h-auto" autoPlay muted playsinline />
+          <div className="bg-black rounded-xl overflow-hidden shadow-2xl aspect-video">
+            <video ref={videoRef} id="liveVideo" className="w-full h-full" autoPlay muted playsinline />
           </div>
         </div>
         
