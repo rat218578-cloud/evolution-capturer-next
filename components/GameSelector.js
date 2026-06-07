@@ -10,8 +10,8 @@ export default function GameSelector({ games, selected, onSelect }) {
             key={id}
             onClick={() => onSelect(id)}
             className={`p-4 rounded-xl text-center transition-all ${
-              selected === id
-                ? 'bg-purple-600 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
+              selected === id 
+                ? 'bg-purple-600 border-2 border-purple-400 shadow-lg shadow-purple-500/20' 
                 : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
             }`}
           >
