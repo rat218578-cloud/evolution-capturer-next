@@ -1,27 +1,81 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LoginForm({ onLogin }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showIframe, setShowIframe] = useState(false);
+  const [checking, setChecking] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      await onLogin(email, password);
-    } catch (err) {
-      console.error('Login form error:', err);
-      setError('Falha no login. Verifique suas credenciais.');
-    } finally {
-      setLoading(false);
+  // Função para ler o cookie EVOSESSIONID diretamente
+  const getTokenFromCookie = () => {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith('EVOSESSIONID=')) {
+        return cookie.substring('EVOSESSIONID='.length);
+      }
     }
+    return null;
   };
+
+  // Função para verificar se já tem token
+  const checkExistingToken = () => {
+    const token = getTokenFromCookie();
+    if (token && token.length > 10) {
+      console.log('✅ Token encontrado no cookie!');
+      onLogin(token, '1rwl0x');
+      return true;
+    }
+    return false;
+  };
+
+  // Monitora o cookie em busca de mudanças
+  useEffect(() => {
+    // Verifica ao montar
+    checkExistingToken();
+    
+    // Monitora mudanças no cookie a cada 2 segundos
+    const interval = setInterval(() => {
+      const token = getTokenFromCookie();
+      if (token && token.length > 10) {
+        console.log('✅ Token capturado do cookie automaticamente!');
+        onLogin(token, '1rwl0x');
+        clearInterval(interval);
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Quando o iframe carregar, tenta capturar o token
+  const handleIframeLoad = () => {
+    console.log('🔍 Iframe carregado, monitorando cookie...');
+    setChecking(true);
+    
+    // Tenta capturar a cada segundo
+    let attempts = 0;
+    const captureInterval = setInterval(() => {
+      attempts++;
+      const token = getTokenFromCookie();
+      
+      if (token && token.length > 10) {
+        console.log('✅ Token capturado do iframe!');
+        onLogin(token, '1rwl0x');
+        clearInterval(captureInterval);
+        setShowIframe(false);
+      } else if (attempts > 30) {
+        // Desiste após 30 segundos
+        clearInterval(captureInterval);
+        setChecking(false);
+      }
+    }, 1000);
+  };
+
+  // Se já tem token, mostra o jogo diretamente
+  const existingToken = getTokenFromCookie();
+  if (existingToken && existingToken.length > 10) {
+    return null; // Já está logado, não mostra o formulário
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[70vh]">
@@ -30,49 +84,33 @@ export default function LoginForm({ onLogin }) {
           <div className="text-5xl mb-3">🎰</div>
           <h2 className="text-2xl font-bold text-green-500">Evolution Capturer</h2>
           <p className="text-gray-400 text-sm mt-2">
-            Configure um endpoint de autenticação autorizado para habilitar o acesso.
+            Faça login com sua conta Sorte na Bet
           </p>
         </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-300 mb-2">📧 E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 text-white"
-              placeholder="Digite seu e-mail"
-              required
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">🔒 Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 text-white"
-              placeholder="Digite sua senha"
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
+        
+        {!showIframe ? (
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold transition-colors disabled:opacity-50"
+            onClick={() => setShowIframe(true)}
+            className="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold transition-colors"
           >
-            {loading ? '🔄 Entrando...' : '🔐 ENTRAR'}
+            🔐 FAZER LOGIN
           </button>
-        </form>
+        ) : (
+          <>
+            <div className="border border-gray-600 rounded-lg overflow-hidden mb-4" style={{ height: '450px' }}>
+              <iframe 
+                id="loginIframe"
+                src="https://sortenabet.evo-games.com/frontend/evo/r2/?game=bacbo&language=pt&currency=BRL"
+                className="w-full h-full"
+                onLoad={handleIframeLoad}
+                allow="same-origin *;"
+              />
+            </div>
+            <p className="text-xs text-gray-500 text-center">
+              {checking ? '🔍 Detectando login...' : 'Faça login no iframe acima. O token será capturado automaticamente.'}
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
