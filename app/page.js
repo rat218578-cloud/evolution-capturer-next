@@ -123,7 +123,7 @@ export default function Home() {
             }, ...prev].slice(0, 100));
           }
         }
-      } catch(e) {}
+      } catch {}
     };
     
     ws.onclose = () => setTimeout(() => connectGameWebSocket(token, instance, clientVersion, gameId), 5000);
@@ -152,7 +152,7 @@ export default function Home() {
   // Obtém EVOSESSIONID usando o JWT
   const fetchEvolutionToken = async (jwtToken) => {
     try {
-      const response = await fetch('/api/auth/evolution-token', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jwtToken })
@@ -191,7 +191,7 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
           <div className="bg-black rounded-xl overflow-hidden shadow-2xl aspect-video">
-            <video ref={videoRef} id="liveVideo" className="w-full h-full" autoPlay muted playsinline />
+            <video ref={videoRef} id="liveVideo" className="w-full h-full" autoPlay muted playsInline />
           </div>
         </div>
         
